@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>d</title>
+
+    <script src="https://google.com" async defer></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #0b0214; /* Fondo plano negro-morado */
+            color: #ffffff;
+            text-align: center;
+            user-select: none;
+        }
+
+        .container {
+            padding: 35px;
+            background-color: #140526; /* Bloque plano morado oscuro */
+            border-radius: 8px;
+            min-width: 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 1.4rem;
+            font-weight: 400;
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1></h1>
+        
+       
+        <div class="g-recaptcha" 
+             data-sitekey="6LeeNIgtAAAAAPf6PTITllUeDmTVFvC1lxJ_oqds" 
+             data-theme="dark" 
+             data-callback="onCaptchaSuccess"></div>
+    </div>
+
+    <script>
+
+        const targetUrl = "https://example.com";
+
+        // Esta función se activa automáticamente en cuanto Google valida el captcha
+        function onCaptchaSuccess(response) {
+            if (response) {
+                // Pequeña pausa de 400ms para que el usuario llegue a ver el check verde antes de salir
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 400);
+            }
+        }
+    </script>
+
+</body>
+</html>
