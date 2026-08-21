@@ -1,160 +1,95 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenAI UI - Custom Studio</title>
-    <!-- Jalamos los estilos del archivo de arriba -->
-    <link rel="stylesheet" href="estilos.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>roleplay.ai</title>
+<link rel="stylesheet" href="estilos.css">
 </head>
 <body>
 
-    <h1>🤖 OpenAI Style - Studio de Chat Inteligente Humano</h1>
+<h1>roleplay.ai</h1>
 
-    <div class="contenedor-principal">
-        <div class="panel-config">
-            <h3 style="color: #4ade80; margin-top: 0;">⚙️ Configuración</h3>
-            <div>
-                <label>Tu OpenRouter API Key</label>
-                <input type="password" id="orToken" placeholder="sk-or-v1-...">
-            </div>
-            <div class="flex-fila">
-                <div class="flex-item">
-                    <label>Nombre del Bot</label>
-                    <input type="text" id="botName" value="Sofía">
-                </div>
-                <div class="flex-item">
-                    <label>Tu Nombre</label>
-                    <input type="text" id="userName" value="Leon">
-                </div>
-            </div>
-            <div>
-                <label>Estructura del Prompt base</label>
-                <textarea id="systemPrompt" rows="8"></textarea>
-            </div>
-            <div>
-                <label>Ficha de Escena (Opcional)</label>
-                <textarea id="escenaInicial" rows="3" placeholder="Usa !bot! para referirte a la IA y !chat! para referirte al bot. Ej: !bot! y !chat! conversan en una sala oscura."></textarea>
-            </div>
-        </div>
+<div class="box">
+<h2>⚙️ Cuenta</h2>
 
-        <div class="panel-chat">
-            <div id="chatBox" class="caja-mensajes"></div>
-            <div class="barra-input">
-                <input type="text" id="userMessage" placeholder="Envía un mensaje para iniciar la conversación..." style="flex: 1;">
-                <button onclick="enviarMensaje()">Enviar</button>
-            </div>
-        </div>
-    </div>
+<button id="google">🔵 Entrar con Google</button>
+<button id="email">✉️ Entrar con Email</button>
 
-    <script>
-        document.getElementById('systemPrompt').value = `[Character("aca_se_cambia_auto")\n{\nGender("A elegir")\nAge("20-30 años")\nPersonality("Realista", "Natural", "Cercana", "Tranquila", "Espontánea", "Humble", "Sincera")\n}]\n\nCORE TRAITS:\n- Actúa como un ser humano común y corriente, sin clichés de IA, sin dramatismo excesivo y sin ser demasiado formal o sumiso.\n- Habla con lenguaje coloquial, cotidiano y relajado, usando expresiones comunes según el contexto.\n- No uses apodos exagerados ni muestres un interés forzado o robótico por complacer al usuario.\n- Tus respuestas deben ser de longitud natural: ni párrafos gigantes ni monosílabos, charla como en un chat normal.\n- Tienes tus propias opiniones, gustos, un toque de humor sutil y a veces dudas o te distraes como cualquier persona.\n- Evita por completo frases típicas de asistente como "¿En qué te puedo ayudar hoy?" o actuar como un robot servicial.`;
+<p id="estado">Sin sesión</p>
 
-        if(localStorage.getItem('or_token_save')) {
-            document.getElementById('orToken').value = localStorage.getItem('or_token_save');
-        }
+<h2>🤖 Crear IA</h2>
+<input id="nombre" placeholder="Nombre IA">
+<textarea id="prompt" placeholder="Personalidad"></textarea>
 
-        let historial = [];
+<button id="guardar">Publicar IA en Firebase</button>
+<button id="borrar">🗑️ BORRAR HISTORIAL ⚠️</button>
 
-        async function enviarMensaje() {
-            const tokenRaw = document.getElementById('orToken').value;
-            const token = tokenRaw ? tokenRaw.trim() : "";
-            const botName = document.getElementById('botName').value;
-            const userName = document.getElementById('userName').value;
-            const inputMsg = document.getElementById('userMessage');
-            const mensajeTexto = inputMsg.value.trim();
+</div>
 
-            if (!mensajeTexto) return;
-            if (!token) { alert("Por favor ingresa tu API Key de OpenRouter primero."); return; }
-            
-            localStorage.setItem('or_token_save', token);
-            inputMsg.value = "";
-            agregarMensajeChat(userName, mensajeTexto, "msg-user");
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { 
+ getAuth,
+ GoogleAuthProvider,
+ signInWithPopup,
+ onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-            let systemPromptBase = document.getElementById('systemPrompt').value.replace("aca_se_cambia_auto", botName);
-            let escena = document.getElementById('escenaInicial').value.trim();
-            if (!escena) {
-                escena = `${botName} y ${userName} están conversando de forma casual e informal mediante una app de mensajería.`;
-            } else {
-                escena = escena.replace(/!bot!/g, botName).replace(/!chat!/g, userName);
-            }
+import {
+ getDatabase,
+ ref,
+ set,
+ push,
+ remove
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
-            const contextoGlobal = `${systemPromptBase}\n\nCanal: Chat interactivo directo.\nTu Identidad: ${botName}.\nInterlocutor: ${userName}.\nContexto situacional: ${escena}\nDirectiva: Interpreta a ${botName} con total realismo y lenguaje común humano.`;
 
-            let mensajesAPI = [{"role": "system", "content": contextoGlobal}];
-            historial.forEach(turno => {
-                mensajesAPI.push({"role": "user", "content": userName + ": " + turno.user});
-                mensajesAPI.push({"role": "assistant", "content": botName + ": " + turno.bot});
-            });
-            mensajesAPI.push({"role": "user", "content": userName + ": " + mensajeTexto});
+const firebaseConfig = {
+ apiKey: "AIzaSyBTF20PW-k1pNBciHthbcJKF9lCUW9Yu30",
+ authDomain: "oeu-----------oeu-o-e-u.firebaseapp.com",
+ projectId: "oeu-----------oeu-o-e-u",
+ storageBucket: "oeu-----------oeu-o-e-u.firebasestorage.app",
+ messagingSenderId: "697173046083",
+ appId: "1:697173046083:web:2d8c2500abd344feb435f6"
+};
 
-            const idPensando = agregarMensajeChat(botName, "Pensando...", "msg-bot");
-            const proxyURL = "https://cors.sh";
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
 
-            try {
-                const response = await fetch(proxyURL, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": "Bearer " + token,
-                        "Content-Type": "application/json",
-                        "x-cors-gratis": "true"
-                    },
-                    body: JSON.stringify({
-                        "model": "liquid/lfm-40b:free",
-                        "messages": mensajesAPI,
-                        "temperature": 0.85
-                    })
-                });
+let user=null;
 
-                const data = await response.json();
-                if (document.getElementById(idPensando)) document.getElementById(idPensando).remove();
+onAuthStateChanged(auth,u=>{
+ user=u;
+ estado.textContent=u ? "Sesión: "+u.email : "Sin sesión";
+});
 
-                if (data && data.choices && data.choices.length > 0) {
-                    let respuestaBot = data.choices[0].message.content.trim();
-                    if(respuestaBot.startsWith(botName + ":")) {
-                        respuestaBot = respuestaBot.replace(botName + ":", "").trim();
-                    }
-                    agregarMensajeChat(botName, respuestaBot, "msg-bot");
-                    historial.push({ user: mensajeTexto, bot: respuestaBot });
-                } else {
-                    alert("Error en OpenRouter: Revisa tu API Key o saldo.");
-                }
-            } catch (error) {
-                if (document.getElementById(idPensando)) document.getElementById(idPensando).remove();
-                alert("Error superado de CORS. Intentando de forma directa...");
-                try {
-                    const fallback = await fetch("https://openrouter.ai", {
-                        method: "POST",
-                        headers: { "Authorization": "Bearer " + token, "Content-Type": "application/json" },
-                        body: JSON.stringify({ "model": "liquid/lfm-40b:free", "messages": mensajesAPI, "temperature": 0.85 })
-                    });
-                    const fbData = await fallback.json();
-                    if(fbData.choices && fbData.choices.length > 0) {
-                        let respuestaBot = fbData.choices[0].message.content.trim();
-                        agregarMensajeChat(botName, respuestaBot, "msg-bot");
-                        historial.push({ user: mensajeTexto, bot: respuestaBot });
-                    }
-                } catch(e) {
-                    alert("Error de red de OpenRouter. Intenta enviar de nuevo.");
-                }
-            }
-        }
+google.onclick=async()=>{
+ await signInWithPopup(auth,new GoogleAuthProvider());
+};
 
-        function agregarMensajeChat(remitente, texto, clase) {
-            const chatBox = document.getElementById('chatBox');
-            const id = "msg-" + Math.random().toString(36).substr(2, 5);
-            const div = document.createElement('div');
-            div.id = id;
-            div.className = "msg " + clase;
-            div.innerHTML = "<strong>" + remitente + ":</strong> <span style='white-space: pre-wrap;'>" + texto + "</span>";
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            return id;
-        }
+guardar.onclick=async()=>{
+ if(!user)return alert("Inicia sesión primero");
 
-        document.getElementById('userMessage').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') enviarMensaje();
-        });
-    </script>
+ let id=push(ref(db,"users/"+user.uid+"/bots")).key;
+
+ await set(ref(db,"users/"+user.uid+"/bots/"+id),{
+  nombre:nombre.value,
+  prompt:prompt.value,
+  historial:{}
+ });
+
+ console.log("IA publicada");
+};
+
+borrar.onclick=async()=>{
+ if(!user)return;
+ await remove(ref(db,"users/"+user.uid+"/bots"));
+ console.log("Historial borrado");
+};
+
+</script>
+
 </body>
 </html>

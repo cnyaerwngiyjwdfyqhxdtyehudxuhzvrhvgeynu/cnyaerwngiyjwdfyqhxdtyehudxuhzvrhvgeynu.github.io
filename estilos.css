@@ -1,62 +1,33 @@
-
-body { 
-    background-color: #09090b !important; 
-    color: #f4f4f5 !important; 
-    font-family: system-ui, -apple-system, sans-serif;
-    margin: 0;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    height: 95vh;
+body{
+background:#09090b;
+color:#f4f4f5;
+font-family:system-ui;
+padding:30px;
 }
-h1 { text-align: center; color: #4ade80; margin-bottom: 20px; font-size: 24px; }
-.contenedor-principal { display: flex; flex: 1; gap: 20px; overflow: hidden; }
-.panel-config { 
-    width: 33%; 
-    background-color: #18181b; 
-    border: 1px solid #27272a; 
-    padding: 20px; 
-    border-radius: 12px; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 15px; 
-    overflow-y: auto; 
+h1{
+color:#16a34a;
+text-align:center;
 }
-.panel-chat { 
-    width: 66%; 
-    background-color: #18181b; 
-    border: 1px solid #27272a; 
-    border-radius: 12px; 
-    display: flex; 
-    flex-direction: column; 
-    overflow: hidden; 
+.box{
+background:#18181b;
+padding:20px;
+border-radius:12px;
+max-width:600px;
+margin:auto;
 }
-.caja-mensajes { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-.barra-input { padding: 15px; border-top: 1px solid #27272a; display: flex; gap: 10px; background-color: #09090b; }
-label { font-size: 12px; color: #a1a1aa; font-weight: bold; display: block; margin-bottom: 5px; }
-input, textarea { 
-    width: 95%; 
-    background-color: #27272a !important; 
-    color: #f4f4f5 !important; 
-    border: 1px solid #3f3f46 !important; 
-    padding: 10px; 
-    border-radius: 6px; 
-    font-size: 13px;
+input,textarea{
+width:95%;
+background:#27272a;
+color:white;
+padding:10px;
+margin:5px;
+border-radius:8px;
 }
-input:focus, textarea:focus { border-color: #22c55e !important; outline: none; }
-button { 
-    background-color: #16a34a; 
-    color: white; 
-    border: none; 
-    padding: 10px 20px; 
-    border-radius: 8px; 
-    font-weight: bold; 
-    cursor: pointer; 
-    transition: 0.2s; 
+button{
+background:#16a34a;
+color:white;
+border:0;
+padding:10px;
+margin:5px;
+border-radius:8px;
 }
-button:hover { background-color: #22c55e; }
-.msg { padding: 12px; border-radius: 8px; border: 1px solid #27272a; font-size: 14px; }
-.msg-user { color: #60a5fa; background-color: rgba(39, 39, 42, 0.6); }
-.msg-bot { color: #4ade80; background-color: rgba(39, 39, 42, 0.2); }
-.flex-fila { display: flex; gap: 10px; }
-.flex-item { flex: 1; }
