@@ -3,68 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>d</title>
-
-    <script src="https://google.com" async defer></script>
+    <title>OpenAI UI - Custom Studio</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        body { 
+            background-color: #09090b !important; 
+            color: #f4f4f5 !important; 
+            font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
-            background-color: #0b0214; /* Fondo plano negro-morado */
-            color: #ffffff;
-            text-align: center;
-            user-select: none;
-        }
-
-        .container {
-            padding: 35px;
-            background-color: #140526; /* Bloque plano morado oscuro */
-            border-radius: 8px;
-            min-width: 320px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            height: 95vh;
         }
-
-        h1 {
-            font-size: 1.4rem;
-            font-weight: 400;
-            margin-bottom: 25px;
-            color: #ffffff;
+        h1 { text-align: center; color: #4ade80; margin-bottom: 20px; font-size: 24px; }
+        .contenedor-principal { display: flex; flex: 1; gap: 20px; overflow: hidden; }
+        .panel-config { 
+            width: 33%; 
+            background-color: #18181b; 
+            border: 1px solid #27272a; 
+            padding: 20px; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            overflow-y: auto; 
         }
+        .panel-chat { 
+            width: 66%; 
+            background-color: #18181b; 
+            border: 1px solid #27272a; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        .caja-mensajes { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .barra-input { padding: 15px; border-top: 1px solid #27272a; display: flex; gap: 10px; background-color: #09090b; }
+        label { font-size: 12px; color: #a1a1aa; font-weight: bold; display: block; margin-bottom: 5px; }
+        input, textarea { 
+            width: 95%; 
+            background-color: #27272a !important; 
+            color: #f4f4f5 !important; 
+            border: 1px solid #3f3f46 !important; 
+            padding: 10px; 
+            border-radius: 6px; 
+            font-size: 13px;
+        }
+        input:focus, textarea:focus { border-color: #22c55e !important; outline: none; }
+        button { 
+            background-color: #16a34a; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        button:hover { background-color: #22c55e; }
+        .msg { padding: 12px; border-radius: 8px; border: 1px solid #27272a; font-size: 14px; }
+        .msg-user { color: #60a5fa; background-color: rgba(39, 39, 42, 0.6); }
+        .msg-bot { color: #4ade80; background-color: rgba(39, 39, 42, 0.2); }
+        .flex-fila { display: flex; gap: 10px; }
+        .flex-item { flex: 1; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1></h1>
-        
-       
-        <div class="g-recaptcha" 
-             data-sitekey="6LeeNIgtAAAAAPf6PTITllUeDmTVFvC1lxJ_oqds" 
-             data-theme="dark" 
-             data-callback="onCaptchaSuccess"></div>
+    <h1>🤖 OpenAI Style - Studio de Chat Inteligente Humano</h1>
+
+    <div class="contenedor-principal">
+        <div class="panel-config">
+            <h3 style="color: #4ade80; margin-top: 0;">⚙️ Configuración</h3>
+            
+            <div>
+                <label>Tu OpenRouter API Key</label>
+                <input type="password" id="orToken" placeholder="sk-or-v1-...">
+            </div>
+
+            <div class="flex-fila">
+                <div class="flex-item">
+                    <label>Nombre del Bot</label>
+                    <input type="text" id="botName" value="Sofía">
+                </div>
+                <div class="flex-item">
+                    <label>Tu Nombre</label>
+                    <input type="text" id="userName" value="Leon">
+                </div>
+            </div>
+
+            <div>
+                <label>Estructura del Prompt base</label>
+                <textarea id="systemPrompt" rows="8"></textarea>
+            </div>
+
+            <div>
+                <label>Ficha de Escena (Opcional)</label>
+                <textarea id="escenaInicial" rows="3" placeholder="Usa !bot! para referirte a la IA y !chat! para referirte al bot. Ej: !bot! y !chat! conversan en una sala oscura."></textarea>
+            </div>
+        </div>
+
+        <div class="panel-chat">
+            <div id="chatBox" class="caja-mensajes"></div>
+            
+            <div class="barra-input">
+                <input type="text" id="userMessage" placeholder="Envía un mensaje para iniciar la conversación..." style="flex: 1;">
+                <button onclick="enviarMensaje()">Enviar</button>
+            </div>
+        </div>
     </div>
 
     <script>
+        document.getElementById('systemPrompt').value = `[Character("aca_se_cambia_auto")\n{\nGender("A elegir")\nAge("20-30 años")\nPersonality("Realista", "Natural", "Cercana", "Tranquila", "Espontánea", "Humble", "Sincera")\n}]\n\nCORE TRAITS:\n- Actúa como un ser humano común y corriente, sin clichés de IA, sin dramatismo excesivo y sin ser demasiado formal o sumiso.\n- Habla con lenguaje coloquial, cotidiano y relajado, usando expresiones comunes según el contexto.\n- No uses apodos exagerados ni muestres un interés forzado o robótico por complacer al usuario.\n- Tus respuestas deben ser de longitud natural: ni párrafos gigantes ni monosílabos, charla como en un chat normal.\n- Tienes tus propias opiniones, gustos, un toque de humor sutil y a veces dudas o te distraes como cualquier persona.\n- Evita por completo frases típicas de asistente como "¿En qué te puedo ayudar hoy?" o actuar como un robot servicial.`;
 
-        const targetUrl = "https://example.com";
+        if(localStorage.getItem('or_token_save')) {
+            document.getElementById('orToken').value = localStorage.getItem('or_token_save');
+        }
 
-        // Esta función se activa automáticamente en cuanto Google valida el captcha
-        function onCaptchaSuccess(response) {
-            if (response) {
-                // Pequeña pausa de 400ms para que el usuario llegue a ver el check verde antes de salir
-                setTimeout(() => {
-                    window.location.href = targetUrl;
-                }, 400);
+        let historial = [];
+
+        async function enviarMensaje() {
+            const tokenRaw = document.getElementById('orToken').value;
+            const token = tokenRaw ? tokenRaw.trim() : "";
+            const botName = document.getElementById('botName').value;
+            const userName = document.getElementById('userName').value;
+            const inputMsg = document.getElementById('userMessage');
+            const mensajeTexto = inputMsg.value.trim();
+
+            if (!mensajeTexto) return;
+            if (!token) { alert("Por favor ingresa tu API Key de OpenRouter primero."); return; }
+            
+            localStorage.setItem('or_token_save', token);
+            inputMsg.value = "";
+
+            agregarMensajeChat(userName, mensajeTexto, "msg-user");
+
+            let systemPromptBase = document.getElementById('systemPrompt').value.replace("aca_se_cambia_auto", botName);
+            let escena = document.getElementById('escenaInicial').value.trim();
+            if (!escena) {
+                escena = `${botName} y ${userName} están conversando de forma casual e informal mediante una app de mensajería.`;
+            } else {
+                escena = escena.replace(/!bot!/g, botName).replace(/!chat!/g, userName);
+            }
+
+            const contextoGlobal = `${systemPromptBase}\n\nCanal: Chat interactivo directo.\nTu Identidad: ${botName}.\nInterlocutor: ${userName}.\nContexto situacional: ${escena}\nDirectiva: Interpreta a ${botName} con total realismo y lenguaje común humano.`;
+
+            let mensajesAPI = [{"role": "system", "content": contextoGlobal}];
+            historial.forEach(turno => {
+                mensajesAPI.push({"role": "user", "content": userName + ": " + turno.user});
+                mensajesAPI.push({"role": "assistant", "content": botName + ": " + turno.bot});
+            });
+            mensajesAPI.push({"role": "user", "content": userName + ": " + mensajeTexto});
+
+            const idPensando = agregarMensajeChat(botName, "Pensando...", "msg-bot");
+
+            try {
+                const response = await fetch("https://openrouter.ai", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": "liquid/lfm-40b:free",
+                        "messages": mensajesAPI,
+                        "temperature": 0.85
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (document.getElementById(idPensando)) {
+                    document.getElementById(idPensando).remove();
+                }
+
+                if (data && data.choices && data.choices.length > 0) {
+                    let respuestaBot = data.choices[0].message.content.trim();
+                    if(respuestaBot.startsWith(botName + ":")) {
+                        respuestaBot = respuestaBot.replace(botName + ":", "").trim();
+                    }
+                    agregarMensajeChat(botName, respuestaBot, "msg-bot");
+                    historial.push({ user: mensajeTexto, bot: respuestaBot });
+                } else {
+                    alert("Error en OpenRouter: Clave sin saldo o modelo sobrecargado.");
+                }
+            } catch (error) {
+                if (document.getElementById(idPensando)) {
+                    document.getElementById(idPensando).remove();
+                }
+                alert("Error de conexión: " + error.message);
             }
         }
-    </script>
 
+        function agregarMensajeChat(remitente, texto, clase) {
+            const chatBox = document.getElementById('chatBox');
+            const id = "msg-" + Math.random().toString(36).substr(2, 5);
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "msg " + clase;
+            div.innerHTML = "<strong>" + remitente + ":</strong> <span style='white-space: pre-wrap;'>" + texto + "</span>";
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return id;
+        }
+
+        document.getElementById('userMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') enviarMensaje();
+        });
+    </script>
 </body>
 </html>
